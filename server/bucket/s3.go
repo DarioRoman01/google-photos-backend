@@ -1,8 +1,9 @@
 package bucket
 
 import (
+	"bytes"
 	"fmt"
-	"mime/multipart"
+	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -54,22 +55,28 @@ func (r *S3BucketRepository) Delete(username, filename, folder string) error {
 }
 
 // Upload uploads an image to the bucket and returns the URL of the image.
-func (repository *S3BucketRepository) Upload(file multipart.File, fileHeader *multipart.FileHeader, username, folder string) (string, error) {
+func (repository *S3BucketRepository) Upload(file *bytes.Buffer, fileName, username, folder string) (string, error) {
 	uploader := s3manager.NewUploader(repository.client)
 
 	// verify if the path is not empty
 	var path string
 	if folder == "" {
-		path = fmt.Sprintf("%s/default/%s", username, fileHeader.Filename)
+		path = fmt.Sprintf("%s/default/%s", username, fileName)
 	} else {
-		path = fmt.Sprintf("%s/%s/%s", username, folder, fileHeader.Filename)
+		path = fmt.Sprintf("%s/%s/%s", username, folder, fileName)
 	}
 
 	r, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(os.Getenv("S3_BUCKET")),
-		Key:    aws.String(path),
-		Body:   file,
+		Bucket:      aws.String(os.Getenv("S3_BUCKET")),
+		Key:         aws.String(path),
+		Body:        file,
+		ContentType: aws.String("image/jpeg"),
 	})
 
-	return r.Location, err
+	if err != nil {
+		log.Printf("Error uploading file: %s", err)
+		return "", err
+	}
+
+	return r.Location, nil
 }

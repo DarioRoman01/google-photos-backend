@@ -7,10 +7,13 @@ option go_package = "github.com/DarioRoman01/grpc/uploadpb";
 message UploadRequest {
     string mime = 1;
     bytes chunk = 2;
+    string filename = 3;
+    string folder = 4;
+    string username = 5;
 }
  
 message UploadResponse {
-    string name = 1;
+    string location = 1;
 }
 
 service UploadService {

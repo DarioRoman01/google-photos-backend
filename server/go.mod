@@ -4,12 +4,13 @@ go 1.18
 
 require github.com/aws/aws-sdk-go v1.44.76
 
-require github.com/google/uuid v1.3.0
+require (
+	github.com/google/uuid v1.3.0
+	github.com/mailgun/mailgun-go/v3 v3.6.4
+)
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-chi/chi v4.0.0+incompatible // indirect
-	github.com/mailgun/mailgun-go/v3 v3.6.4 // indirect
 	github.com/mailru/easyjson v0.0.0-20180823135443-60711f1a8329 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 )
