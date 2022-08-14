@@ -7,6 +7,14 @@ require github.com/aws/aws-sdk-go v1.44.76
 require github.com/google/uuid v1.3.0
 
 require (
+	github.com/golang/protobuf v1.5.2 // indirect
+	golang.org/x/text v0.3.7 // indirect
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
+	google.golang.org/grpc v1.48.0
+	google.golang.org/protobuf v1.27.1
+)
+
+require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/gofiber/fiber/v2 v2.36.0
 	github.com/jmespath/go-jmespath v0.4.0 // indirect

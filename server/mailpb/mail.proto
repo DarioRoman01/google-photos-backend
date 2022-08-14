@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package mailpb;
+
+option go_package = "github.com/DarioRoman01/grpc/mailpb"; 
+
+// SendMailRequest is the request message containing the mail to send.
+message SendMailRequest {
+    string type = 1;
+    string receiver = 2;
+    string user = 3;
+    string token = 4;
+}
+
+// SendMailResponse is the response message containing the id of the mail.
+message SendMailResponse {
+    string id = 1;
+}
+
+// MailService is the interface for the mail service.
+service MailService {
+  rpc SendMail(SendMailRequest) returns (SendMailResponse);
+}
