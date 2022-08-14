@@ -6,8 +6,10 @@ import (
 
 // BucketRepository is an interface for a repository that stores and retrieves images.
 type BucketRepository interface {
-	Delete(username, filename, folder string) error                     // Delete deletes an image from the bucket.
-	Upload(file multipart.File, fileHeader *multipart.FileHeader) error // Upload uploads an image to the bucket.
+	// Delete deletes an image from the bucket.
+	Delete(username, filename, folder string) error
+	// Upload uploads an image to the bucket.
+	Upload(file multipart.File, fileHeader *multipart.FileHeader, username, folder string) (string, error)
 }
 
 var bucketRepository BucketRepository
@@ -20,6 +22,6 @@ func Delete(username, filename, folder string) error {
 	return bucketRepository.Delete(username, filename, folder)
 }
 
-func Upload(file multipart.File, fileHeader *multipart.FileHeader, username, folder string) error {
-	return bucketRepository.Upload(file, fileHeader)
+func Upload(file multipart.File, fileHeader *multipart.FileHeader, username, folder string) (string, error) {
+	return bucketRepository.Upload(file, fileHeader, username, folder)
 }
