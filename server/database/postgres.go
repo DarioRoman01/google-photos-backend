@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"github.com/DarioRoman01/photos/models"
+	"github.com/google/uuid"
+	_ "github.com/lib/pq"
 )
 
 // PostgresRepository is a repository that uses a Postgres database.
@@ -23,7 +25,9 @@ func NewPostgresRepository(url string) (*PostgresRepository, error) {
 		return nil, err
 	}
 
-	return &PostgresRepository{db}, nil
+	repo := &PostgresRepository{db: db}
+	repo.Migrate()
+	return repo, nil
 }
 
 // Migrate the database to the latest schema version.
@@ -33,7 +37,7 @@ func (r *PostgresRepository) Migrate() {
 			id VARCHAR(255) PRIMARY KEY,
 			username VARCHAR(255) NOT NULL,
 			email VARCHAR(255) NOT NULL,
-			password VARCHAR(255) NOT NULL
+			password VARCHAR(255) NOT NULL,
 			is_verified BOOLEAN NOT NULL DEFAULT FALSE
 		);
 	`)
@@ -44,7 +48,7 @@ func (r *PostgresRepository) Migrate() {
 
 	_, err = r.db.Exec(`
 		CREATE TABLE IF NOT EXISTS folders (
-			id VARCHAR(36) PRIMARY KEY,
+			id VARCHAR(255) PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			user_id VARCHAR(255) NOT NULL,
 			FOREIGN KEY (user_id) REFERENCES users (id)
@@ -57,12 +61,12 @@ func (r *PostgresRepository) Migrate() {
 
 	_, err = r.db.Exec(`
 		CREATE TABLE IF NOT EXISTS images (
-			id VARCHAR(36) PRIMARY KEY,
+			id VARCHAR(255) PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			folder_id VARCHAR(36) NOT NULL,
 			user_id VARCHAR(36) NOT NULL,
 			url VARCHAR(255) NOT NULL,
-			FOREIGN KEY (folder_id) REFERENCES folders(id)
+			FOREIGN KEY (folder_id) REFERENCES folders(id),
 			FOREIGN KEY (user_id) REFERENCES users(id)
 		);
 	`)
@@ -82,6 +86,11 @@ func (r *PostgresRepository) InsertImage(image *models.Image) error {
 	return err
 }
 
+func (r *PostgresRepository) UpdateUserStatus(id string) error {
+	_, err := r.db.Exec("UPDATE users SET is_verified = $1 WHERE id = $2", true, id)
+	return err
+}
+
 // InsertFolder inserts a folder into the database.
 func (r *PostgresRepository) InsertFolder(folder *models.Folder) error {
 	_, err := r.db.Exec(
@@ -90,6 +99,26 @@ func (r *PostgresRepository) InsertFolder(folder *models.Folder) error {
 	)
 
 	return err
+}
+
+// CheckFolder checks if the folder exists if not exists its create a new folder with the given name
+func (r *PostgresRepository) CheckFolder(userID, foldeName string) (string, error) {
+	row := r.db.QueryRow("SELECT id FROM folders WHERE name = $1 AND user_id = $2", foldeName, userID)
+	var id string
+	err := row.Scan(&id)
+	if err != nil {
+		id = uuid.NewString()
+		_, err := r.db.Exec(
+			"INSERT INTO folders (id, name, user_id) VALUES ($1, $2, $3)",
+			id, foldeName, userID,
+		)
+
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return id, nil
 }
 
 // InsertUser inserts a user into the database.

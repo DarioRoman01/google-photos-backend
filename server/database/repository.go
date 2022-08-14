@@ -10,6 +10,8 @@ type DatabaseRepository interface {
 	InsertFolder(folder *models.Folder) error
 	// InsertUser inserts a user into the database.
 	InsertUser(user *models.User) error
+	// UpdateUserStatus updates the status of a user to verified.
+	UpdateUserStatus(id string) error
 	// GetImage retrieves an image from the database.
 	GetImage(id string) (*models.Image, error)
 	// GetFolder retrieves a folder from the database.
@@ -20,6 +22,8 @@ type DatabaseRepository interface {
 	GetImagesByFolder(folderID string) ([]*models.Image, error)
 	// GetFolders retrieves all folders from the database from the given user.
 	GetFolders(userID string) ([]*models.Folder, error)
+	// CheckFolder checks if the folder exists if not exists its create a new folder with the given name
+	CheckFolder(userID, foldeName string) (string, error)
 	// GetUserByUsername retrieves a user from the database by username.
 	GetUserByUsername(username string) (*models.User, error)
 	// GetUserByEmail retrieves a user from the database by email.
@@ -70,6 +74,14 @@ func GetFolders(userID string) ([]*models.Folder, error) {
 
 func GetImagesByFolder(folderID string) ([]*models.Image, error) {
 	return databaseRepository.GetImagesByFolder(folderID)
+}
+
+func UpdateUserStatus(id string) error {
+	return databaseRepository.UpdateUserStatus(id)
+}
+
+func CheckFolder(userID, foldeName string) (string, error) {
+	return databaseRepository.CheckFolder(userID, foldeName)
 }
 
 func GetUserByUsername(username string) (*models.User, error) {
