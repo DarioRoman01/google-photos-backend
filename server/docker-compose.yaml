@@ -1,0 +1,32 @@
+version: '3'
+
+services: 
+  mailservice:
+    container_name: mailservice
+    build: "."
+    command: "mail-service"
+    ports:
+      - "5060:5060"
+    env_file:
+      - "./.env"
+
+  uploadservice:
+    container_name: uploadservice
+    build: "."
+    command: "upload-service"
+    ports:
+      - "5070:5070"
+    env_file:
+      - "./.env"
+    
+  commandservice:
+    container_name: commandservice
+    build: "."
+    command: "command-service"
+    ports:
+      - "8080:3000"
+    depends_on:
+      - mailService
+      - uploadService
+    env_file:
+      - "./.env"

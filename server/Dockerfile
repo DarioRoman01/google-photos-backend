@@ -9,9 +9,17 @@ COPY ./go.mod ./go.sum ./
 RUN go mod download
 
 COPY bucket bucket
+COPY command-service command-service
+COPY database database
+COPY mail-service mail-service
+COPY mailpb mailpb
+COPY middlewares middlewares
 COPY models models
+COPY upload-service upload-service
+COPY uploadpb uploadpb
+COPY utils utils
 
-RUN go install
+RUN go install ./...
 
 FROM alpine:3.11
 
