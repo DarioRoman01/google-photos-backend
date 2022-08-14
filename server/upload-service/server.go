@@ -20,10 +20,16 @@ func NewServer() *Server {
 
 func (s *Server) Upload(stream uploadpb.UploadService_UploadServer) error {
 	buff := bytes.NewBuffer(nil)
+
+	filename := ""
+	username := ""
+	folder := ""
+	readed := false
+
 	for {
 		req, err := stream.Recv()
 		if err == io.EOF {
-			location, err := bucket.Upload(buff, req.Filename, req.Username, req.Folder)
+			location, err := bucket.Upload(buff, filename, username, folder)
 			if err != nil {
 				return status.Error(codes.Internal, "failed to upload image")
 			}
@@ -31,6 +37,13 @@ func (s *Server) Upload(stream uploadpb.UploadService_UploadServer) error {
 			return stream.SendAndClose(&uploadpb.UploadResponse{
 				Location: location,
 			})
+		}
+
+		if !readed {
+			filename = req.Filename
+			username = req.Username
+			folder = req.Folder
+			readed = true
 		}
 
 		if err != nil {
