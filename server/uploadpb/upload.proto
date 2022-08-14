@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package imagespb;
+package uploadpb;
 
-option go_package = "github.com/DarioRoman01/grpc/imagespb"; 
+option go_package = "github.com/DarioRoman01/grpc/uploadpb"; 
 
 message UploadRequest {
     string mime = 1;

@@ -4,7 +4,7 @@
 // - protoc             v3.6.1
 // source: uploadpb/upload.proto
 
-package imagespb
+package uploadpb
 
 import (
 	context "context"
@@ -34,7 +34,7 @@ func NewUploadServiceClient(cc grpc.ClientConnInterface) UploadServiceClient {
 }
 
 func (c *uploadServiceClient) Upload(ctx context.Context, opts ...grpc.CallOption) (UploadService_UploadClient, error) {
-	stream, err := c.cc.NewStream(ctx, &UploadService_ServiceDesc.Streams[0], "/imagespb.UploadService/Upload", opts...)
+	stream, err := c.cc.NewStream(ctx, &UploadService_ServiceDesc.Streams[0], "/uploadpb.UploadService/Upload", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (x *uploadServiceUploadServer) Recv() (*UploadRequest, error) {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UploadService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "imagespb.UploadService",
+	ServiceName: "uploadpb.UploadService",
 	HandlerType: (*UploadServiceServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{

@@ -10,6 +10,8 @@ message SendMailRequest {
     string receiver = 2;
     string user = 3;
     string token = 4;
+    string subject = 5;
+    string body = 6;
 }
 
 // SendMailResponse is the response message containing the id of the mail.
