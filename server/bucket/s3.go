@@ -34,24 +34,13 @@ func NewS3BucketRepository() (*S3BucketRepository, error) {
 
 // Delete deletes an image from the bucket.
 func (r *S3BucketRepository) Delete(username, filename, folder string) error {
-	batcher := s3manager.NewBatchDelete(r.client)
+	svc := s3.New(r.client)
+	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(os.Getenv("S3_BUCKET")),
+		Key:    aws.String(fmt.Sprintf("%s/%s/%s", username, folder, filename)),
+	})
 
-	// verify if the path is not empty
-	var path string
-	if folder == "" {
-		path = username + "/" + "default" + "/" + filename
-	} else {
-		path = username + "/" + folder + "/" + filename
-	}
-
-	objs := []s3manager.BatchDeleteObject{{
-		Object: &s3.DeleteObjectInput{
-			Bucket: aws.String(os.Getenv("S3_BUCKET")),
-			Key:    aws.String(path),
-		},
-	}}
-
-	return batcher.Delete(aws.BackgroundContext(), &s3manager.DeleteObjectsIterator{Objects: objs})
+	return err
 }
 
 // Upload uploads an image to the bucket and returns the URL of the image.
@@ -79,4 +68,41 @@ func (repository *S3BucketRepository) Upload(file *bytes.Buffer, fileName, usern
 	}
 
 	return r.Location, nil
+}
+
+// MoveFile moves a file from one folder to another and deletes the original file and returns the new file's URL.
+func (r *S3BucketRepository) MoveFile(username, oldPath, newPath, filename string) (string, error) {
+	svc := s3.New(r.client)
+	opt, err := svc.CopyObject(&s3.CopyObjectInput{
+		Bucket:     aws.String(os.Getenv("S3_BUCKET")),
+		CopySource: aws.String(fmt.Sprintf("%s/%s/%s", username, oldPath, filename)),
+		Key:        aws.String(fmt.Sprintf("%s/%s/%s", username, newPath, filename)),
+	})
+
+	if err != nil {
+		log.Printf("Error copying file: %s", err)
+		return "", err
+	}
+
+	_, err = svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(os.Getenv("S3_BUCKET")),
+		Key:    aws.String(fmt.Sprintf("%s/%s/%s", username, oldPath, filename)),
+	})
+
+	if err != nil {
+		log.Printf("Error deleting file: %s", err)
+		return "", err
+	}
+
+	return opt.CopyObjectResult.GoString(), nil
+}
+
+func (r *S3BucketRepository) DeleteFolder(username, folderName string) error {
+	svc := s3.New(r.client)
+	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(os.Getenv("S3_BUCKET")),
+		Key:    aws.String(fmt.Sprintf("%s/%s", username, folderName)),
+	})
+
+	return err
 }

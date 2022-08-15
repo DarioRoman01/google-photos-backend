@@ -10,6 +10,10 @@ type BucketRepository interface {
 	Delete(username, filename, folder string) error
 	// Upload uploads an image to the bucket.
 	Upload(file *bytes.Buffer, fileName, username, folder string) (string, error)
+	// MoveFile copy a file from one folder to another and deletes the original file and returns the new file's URL.
+	MoveFile(username, oldPath, newPath, filename string) (string, error)
+	// DeleteFolder deletes a folder from the bucket.
+	DeleteFolder(username, folder string) error
 }
 
 var bucketRepository BucketRepository
@@ -24,4 +28,12 @@ func Delete(username, filename, folder string) error {
 
 func Upload(file *bytes.Buffer, fileName, username, folder string) (string, error) {
 	return bucketRepository.Upload(file, fileName, username, folder)
+}
+
+func MoveFile(username, oldPath, newPath, filename string) (string, error) {
+	return bucketRepository.MoveFile(username, oldPath, newPath, filename)
+}
+
+func DeleteFolder(username, folder string) error {
+	return bucketRepository.DeleteFolder(username, folder)
 }
