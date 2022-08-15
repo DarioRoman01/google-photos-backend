@@ -38,6 +38,7 @@ func (r *PostgresRepository) Migrate() {
 			username VARCHAR(255) NOT NULL,
 			email VARCHAR(255) NOT NULL,
 			password VARCHAR(255) NOT NULL,
+			created_at DATETIME NOT NULL DEFAULT NOW(),
 			is_verified BOOLEAN NOT NULL DEFAULT FALSE
 		);
 	`)
@@ -51,7 +52,8 @@ func (r *PostgresRepository) Migrate() {
 			id VARCHAR(255) PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			user_id VARCHAR(255) NOT NULL,
-			FOREIGN KEY (user_id) REFERENCES users (id)
+			created_at DATETIME NOT NULL DEFAULT NOW(),
+			FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 		);
 	`)
 
@@ -66,8 +68,9 @@ func (r *PostgresRepository) Migrate() {
 			folder_id VARCHAR(36) NOT NULL,
 			user_id VARCHAR(36) NOT NULL,
 			url VARCHAR(255) NOT NULL,
-			FOREIGN KEY (folder_id) REFERENCES folders(id),
-			FOREIGN KEY (user_id) REFERENCES users(id)
+			created_at DATETIME NOT NULL DEFAULT NOW(),
+			FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		);
 	`)
 
@@ -169,9 +172,9 @@ func (r *PostgresRepository) GetUserByUsername(username string) (*models.User, e
 
 // GetImage returns an image with the given id.
 func (r *PostgresRepository) GetImage(id string) (*models.Image, error) {
-	row := r.db.QueryRow("SELECT id, name, url, user_id, folder_id FROM images WHERE id = $1", id)
+	row := r.db.QueryRow("SELECT id, name, url, user_id, folder_id, created_at FROM images WHERE id = $1", id)
 	image := &models.Image{}
-	err := row.Scan(&image.ID, &image.Name, &image.URL, &image.UserID, &image.FolderID)
+	err := row.Scan(&image.ID, &image.Name, &image.URL, &image.UserID, &image.FolderID, &image.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -180,25 +183,49 @@ func (r *PostgresRepository) GetImage(id string) (*models.Image, error) {
 }
 
 // GetImages returns all images for the given user.
-func (r *PostgresRepository) GetImages(userID string) ([]*models.Image, error) {
-	rows, err := r.db.Query("SELECT id, name, url, user_id, folder_id FROM images WHERE user_id = $1", userID)
+func (r *PostgresRepository) GetImages(userID, cursor string, limit int) ([]*models.Image, error, bool) {
+	if limit > 50 || limit < 1 {
+		limit = 50
+	}
+
+	var rows *sql.Rows
+	var err error
+	if cursor == "" {
+		rows, err = r.db.Query(`
+			SELECT id, name, url, user_id, folder_id, created_at FROM images WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2
+		`, userID, limit)
+
+	} else {
+		rows, err = r.db.Query(`
+		"SELECT id, name, url, user_id, folder_id, created_at FROM images WHERE user_id = $1 AND created_at < $2 ORDER BY created_at DESC LIMIT $3"
+		`, userID, cursor, limit)
+	}
+
 	if err != nil {
-		return nil, err
+		return nil, err, false
 	}
 
 	defer rows.Close()
 	images := []*models.Image{}
 	for rows.Next() {
 		image := &models.Image{}
-		err := rows.Scan(&image.ID, &image.Name, &image.URL, &image.UserID, &image.FolderID)
+		err := rows.Scan(&image.ID, &image.Name, &image.URL, &image.UserID, &image.FolderID, &image.CreatedAt)
 		if err != nil {
-			return nil, err
+			return nil, err, false
 		}
 
 		images = append(images, image)
 	}
 
-	return images, nil
+	if len(images) == 0 {
+		return nil, nil, false
+	}
+
+	if len(images) == limit {
+		return images, nil, true
+	}
+
+	return images, nil, false
 }
 
 // GetImagesByFolder returns all images for the given folder.
@@ -225,9 +252,9 @@ func (r *PostgresRepository) GetImagesByFolder(folderID string) ([]*models.Image
 
 // GetFolder returns a folder with the given id.
 func (r *PostgresRepository) GetFolder(id string) (*models.Folder, error) {
-	row := r.db.QueryRow("SELECT id, name, user_id FROM folders WHERE id = $1", id)
+	row := r.db.QueryRow("SELECT id, name, user_id, created_at FROM folders WHERE id = $1", id)
 	folder := &models.Folder{}
-	err := row.Scan(&folder.ID, &folder.Name, &folder.UserID)
+	err := row.Scan(&folder.ID, &folder.Name, &folder.UserID, &folder.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +264,7 @@ func (r *PostgresRepository) GetFolder(id string) (*models.Folder, error) {
 
 // GetFolders returns all folders for the given user.
 func (r *PostgresRepository) GetFolders(userID string) ([]*models.Folder, error) {
-	rows, err := r.db.Query("SELECT id, name, user_id FROM folders WHERE user_id = $1", userID)
+	rows, err := r.db.Query("SELECT id, name, user_id, created_at FROM folders WHERE user_id = $1", userID)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +273,7 @@ func (r *PostgresRepository) GetFolders(userID string) ([]*models.Folder, error)
 	folders := []*models.Folder{}
 	for rows.Next() {
 		folder := &models.Folder{}
-		err := rows.Scan(&folder.ID, &folder.Name, &folder.UserID)
+		err := rows.Scan(&folder.ID, &folder.Name, &folder.UserID, &folder.CreatedAt)
 		if err != nil {
 			return nil, err
 		}

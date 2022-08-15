@@ -17,7 +17,7 @@ type DatabaseRepository interface {
 	// GetFolder retrieves a folder from the database.
 	GetFolder(id string) (*models.Folder, error)
 	// GetImages retrieves all images from the database  from the given user.
-	GetImages(userID string) ([]*models.Image, error)
+	GetImages(userID, cursor string, limit int) ([]*models.Image, error, bool)
 	// GetImagesByFolder retrieves all images from the database  from the given folder.
 	GetImagesByFolder(folderID string) ([]*models.Image, error)
 	// GetFolders retrieves all folders from the database from the given user.
@@ -64,8 +64,8 @@ func GetFolder(id string) (*models.Folder, error) {
 	return databaseRepository.GetFolder(id)
 }
 
-func GetImages(userID string) ([]*models.Image, error) {
-	return databaseRepository.GetImages(userID)
+func GetImagesGetImages(userID, cursor string, limit int) ([]*models.Image, error, bool) {
+	return databaseRepository.GetImages(userID, cursor, limit)
 }
 
 func GetFolders(userID string) ([]*models.Folder, error) {

@@ -38,6 +38,7 @@ type User struct {
 	Username   string `json:"username"`    // Username is the user's username.
 	Email      string `json:"email"`       // Email is the user's email address.
 	Password   string `json:"-"`           // Password is the user's password, hashed.
+	CreatedAt  string `json:"created_at"`  // CreatedAt is the time the user was created.
 	IsVerified bool   `json:"is_verified"` // IsVerified is true if the user has verified their email address.
 }
 
@@ -50,19 +51,21 @@ type UserLoginRegister struct {
 
 // Image represents an image in the bucket.
 type Image struct {
-	ID       string `json:"id"`        // ID is unique identifier for the image.
-	Name     string `json:"name"`      // Name is the image's name.
-	URL      string `json:"url"`       // URL is the image's URL.
-	UserID   string `json:"user_id"`   // UserID is the ID of the user who uploaded the image.
-	FolderID string `json:"folder_id"` // FolderID is the ID of the folder the image is in.
+	ID        string `json:"id"`         // ID is unique identifier for the image.
+	Name      string `json:"name"`       // Name is the image's name.
+	URL       string `json:"url"`        // URL is the image's URL.
+	UserID    string `json:"user_id"`    // UserID is the ID of the user who uploaded the image.
+	FolderID  string `json:"folder_id"`  // FolderID is the ID of the folder the image is in.
+	CreatedAt string `json:"created_at"` // CreatedAt is the time the image was created.
 }
 
 // Folder represents a folder in the bucket.
 type Folder struct {
-	ID     string  `json:"id"`      // ID is unique identifier for the folder.
-	Name   string  `json:"name"`    // Name is the folder's name.
-	UserID string  `json:"user_id"` // UserID is the ID of the user who uploaded the image.
-	Images []Image `json:"images"`  // Images is the images in the folder.
+	ID        string  `json:"id"`         // ID is unique identifier for the folder.
+	Name      string  `json:"name"`       // Name is the folder's name.
+	UserID    string  `json:"user_id"`    // UserID is the ID of the user who uploaded the image.
+	CreatedAt string  `json:"created_at"` // CreatedAt is the time the folder was created.
+	Images    []Image `json:"images"`     // Images is the images in the folder.
 }
 
 // Claims represents the claims in a JWT.
@@ -81,4 +84,12 @@ type UploadRequest struct {
 	Username   string         // Username is the user's username.
 	UserID     string         // UserID is the ID of the user who uploaded the image.
 	File       multipart.File // File is the file to upload.
+}
+
+type MoveFileRequest struct {
+	FolderID      string `json:"folder_id"`       // FolderID is the ID of the folder the image is in.
+	FolderName    string `json:"folder_name"`     // FolderName is the name of the folder where the file is store.
+	NewFolderName string `json:"new_folder_name"` // NewFolderName is the name of the folder where the file will be moved to.
+	Filename      string `json:"filename"`        // Filename is the name of the file to move.
+	FileID        string `json:"file_id"`         // FileID is the ID of the file to move.
 }

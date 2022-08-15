@@ -251,7 +251,6 @@ func (s *CommandService) UploadHandler(c *fiber.Ctx) error {
 	}
 
 	defer req.File.Close()
-	fileName := req.Filename
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(utils.JsonError("Invalid file"))
 	}
@@ -264,7 +263,7 @@ func (s *CommandService) UploadHandler(c *fiber.Ctx) error {
 	img := &models.Image{
 		ID:       uuid.NewString(),
 		UserID:   req.UserID,
-		Name:     fileName,
+		Name:     req.Filename,
 		FolderID: req.FolderID,
 		URL:      location,
 	}
@@ -275,4 +274,27 @@ func (s *CommandService) UploadHandler(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(img)
+}
+
+func (s *CommandService) DeleteImageHandler(c *fiber.Ctx) error {
+	fileName := c.Params("filename")
+	folder := c.Query("path")
+	if folder == "" {
+		folder = "default"
+	}
+
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(http.StatusBadRequest).JSON(utils.JsonError("Invalid id"))
+	}
+
+	if err := bucket.Delete(c.Locals("username").(string), fileName, folder); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(utils.JsonError("Error deleting file"))
+	}
+
+	if err := database.DeleteImage(id); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(utils.JsonError("Error deleting image"))
+	}
+
+	return c.Status(http.StatusOK).JSON(map[string]string{"message": "Image deleted"})
 }
