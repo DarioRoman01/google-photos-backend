@@ -298,3 +298,22 @@ func (s *CommandService) DeleteImageHandler(c *fiber.Ctx) error {
 
 	return c.Status(http.StatusOK).JSON(map[string]string{"message": "Image deleted"})
 }
+
+func (s *CommandService) MoveFileHandler(c *fiber.Ctx) error {
+	req := new(models.MoveFileRequest)
+	if err := c.BodyParser(req); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(utils.JsonError("Invalid request"))
+	}
+
+	_, err := bucket.MoveFile(c.Locals("username").(string), req.FolderName, req.NewFolderName, req.Filename)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(utils.JsonError("Error moving file"))
+	}
+
+	if err := database.UpdateImage(req, c.Locals("user_id").(string)); err != nil {
+		log.Printf("Error updating image: %s", err)
+		return c.Status(http.StatusInternalServerError).JSON(utils.JsonError("Error updating image"))
+	}
+
+	return c.Status(http.StatusOK).JSON(map[string]string{"message": "File updated"})
+}

@@ -36,6 +36,8 @@ type DatabaseRepository interface {
 	DeleteFolder(id string) error
 	// DeleteUser deletes a user from the database.
 	DeleteUser(id string) error
+	// UpdateImage updates the image with the given id only the folder and the url can be chage.
+	UpdateImage(req *models.MoveFileRequest, userId string) error
 }
 
 var databaseRepository DatabaseRepository
@@ -78,6 +80,10 @@ func GetImagesByFolder(folderID string) ([]*models.Image, error) {
 
 func UpdateUserStatus(id string) error {
 	return databaseRepository.UpdateUserStatus(id)
+}
+
+func UpdateImage(req *models.MoveFileRequest, userId string) error {
+	return databaseRepository.UpdateImage(req, userId)
 }
 
 func CheckFolder(userID, foldeName string) (string, error) {

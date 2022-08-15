@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/DarioRoman01/photos/models"
+	"github.com/DarioRoman01/photos/utils"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
@@ -38,7 +39,7 @@ func (r *PostgresRepository) Migrate() {
 			username VARCHAR(255) NOT NULL,
 			email VARCHAR(255) NOT NULL,
 			password VARCHAR(255) NOT NULL,
-			created_at DATETIME NOT NULL DEFAULT NOW(),
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 			is_verified BOOLEAN NOT NULL DEFAULT FALSE
 		);
 	`)
@@ -52,7 +53,7 @@ func (r *PostgresRepository) Migrate() {
 			id VARCHAR(255) PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			user_id VARCHAR(255) NOT NULL,
-			created_at DATETIME NOT NULL DEFAULT NOW(),
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 			FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 		);
 	`)
@@ -68,7 +69,7 @@ func (r *PostgresRepository) Migrate() {
 			folder_id VARCHAR(36) NOT NULL,
 			user_id VARCHAR(36) NOT NULL,
 			url VARCHAR(255) NOT NULL,
-			created_at DATETIME NOT NULL DEFAULT NOW(),
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 			FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		);
@@ -230,7 +231,7 @@ func (r *PostgresRepository) GetImages(userID, cursor string, limit int) ([]*mod
 
 // GetImagesByFolder returns all images for the given folder.
 func (r *PostgresRepository) GetImagesByFolder(folderID string) ([]*models.Image, error) {
-	rows, err := r.db.Query("SELECT id, name, url, user_id, folder_id FROM images WHERE folder_id = $1", folderID)
+	rows, err := r.db.Query("SELECT id, name, url, user_id, folder_id, created_at FROM images WHERE folder_id = $1", folderID)
 	if err != nil {
 		return nil, err
 	}
@@ -282,6 +283,35 @@ func (r *PostgresRepository) GetFolders(userID string) ([]*models.Folder, error)
 	}
 
 	return folders, nil
+}
+
+// GetImageURL returns the url for the given image id.
+func (r *PostgresRepository) getImageUrl(id string) (string, error) {
+	row := r.db.QueryRow("SELECT url FROM images WHERE id = $1", id)
+	var url string
+	err := row.Scan(&url)
+	if err != nil {
+		return "", err
+	}
+
+	return url, nil
+}
+
+// UpdateImage updates the image with the given id only the folder and the url can be chage.
+func (r *PostgresRepository) UpdateImage(req *models.MoveFileRequest, userId string) error {
+	folderId, err := r.CheckFolder(userId, req.NewFolderName)
+	if err != nil {
+		return err
+	}
+
+	imgUrl, err := r.getImageUrl(req.FileID)
+	if err != nil {
+		return err
+	}
+
+	newUrl := utils.ChangeUrlPath(imgUrl, req.NewFolderName)
+	_, err = r.db.Exec("UPDATE images SET folder_id = $1, url = $2 WHERE id = $3", folderId, newUrl, req.FileID)
+	return err
 }
 
 // DeleteFolder deletes a folder with the given id.

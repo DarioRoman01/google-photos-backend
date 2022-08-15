@@ -70,12 +70,13 @@ func (repository *S3BucketRepository) Upload(file *bytes.Buffer, fileName, usern
 	return r.Location, nil
 }
 
-// MoveFile moves a file from one folder to another and deletes the original file and returns the new file's URL.
+// MoveFile copy a file from one folder to another and deletes the original file and returns the new file's URL.
 func (r *S3BucketRepository) MoveFile(username, oldPath, newPath, filename string) (string, error) {
+	bucketName := os.Getenv("S3_BUCKET")
 	svc := s3.New(r.client)
 	opt, err := svc.CopyObject(&s3.CopyObjectInput{
-		Bucket:     aws.String(os.Getenv("S3_BUCKET")),
-		CopySource: aws.String(fmt.Sprintf("%s/%s/%s", username, oldPath, filename)),
+		Bucket:     aws.String(bucketName),
+		CopySource: aws.String(fmt.Sprintf("%s/%s/%s/%s", bucketName, username, oldPath, filename)),
 		Key:        aws.String(fmt.Sprintf("%s/%s/%s", username, newPath, filename)),
 	})
 

@@ -87,7 +87,6 @@ type UploadRequest struct {
 }
 
 type MoveFileRequest struct {
-	FolderID      string `json:"folder_id"`       // FolderID is the ID of the folder the image is in.
 	FolderName    string `json:"folder_name"`     // FolderName is the name of the folder where the file is store.
 	NewFolderName string `json:"new_folder_name"` // NewFolderName is the name of the folder where the file will be moved to.
 	Filename      string `json:"filename"`        // Filename is the name of the file to move.

@@ -19,6 +19,7 @@ func main() {
 	app.Post("/signup", commandService.RegisterHandler)
 	app.Post("/login", commandService.LoginHandler)
 	app.Post("/upload", commandService.UploadHandler)
+	app.Post("/move", commandService.MoveFileHandler)
 	app.Post("/verify", commandService.HandleVerify)
 
 	app.Get("/", func(c *fiber.Ctx) error {
