@@ -1,0 +1,28 @@
+# this is a deployment file for the upload service
+# it is used to deploy the upload service to the kubernetes cluster
+#
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uploadservice
+  labels:
+    app: uploadservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: uploadservice
+      role: uploadservice
+  template:
+    metadata:
+      labels:
+        app: uploadservice
+        role: uploadservice
+    spec:
+      containers:
+      - name: uploadservice
+        image: registry.opensource.zalan.do/zalan/uploadservice:latest
+        ports:
+        - containerPort: 5070
+`

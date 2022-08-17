@@ -1,0 +1,19 @@
+# this is a service definition for the command service
+# it is used to expose the command service to other services in the kubernetes cluster
+# the service kind is ClusterIP because we don't want to expose the service to the outside world
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: commandservice
+  labels:
+    app: commandservice
+    role: commandservice
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+  selector:
+    app: commandservice
+    role: commandservice

@@ -1,0 +1,28 @@
+# this is a deployment for the query service
+# it is used to deploy the query service to the kubernetes cluster
+#
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: query-service
+  labels:
+    app: query-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: query-service
+      role: query-service
+  template:
+    metadata:
+      labels:
+        app: query-service
+        role: query-service
+    spec:
+      containers:
+      - name: query-service
+        image: registry.opensource.zalan.do/zalan/query-service:latest
+        ports:
+        - containerPort: 3001
+`

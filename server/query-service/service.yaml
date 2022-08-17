@@ -1,0 +1,19 @@
+# this a service definition for the query service
+# it is used to expose the query service to other services in the kubernetes cluster
+# the service kind is ClusterIP because we don't want to expose the service to the outside world
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: query-service
+  labels:
+    app: query-service
+    role: query-service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3001
+    targetPort: 3001
+  selector:
+    app: query-service
+    role: query-service

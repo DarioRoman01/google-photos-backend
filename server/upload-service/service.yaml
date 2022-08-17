@@ -1,0 +1,20 @@
+# this a service definition for the upload service
+# it is used to expose the upload service to other services in the kubernetes cluster
+# the service kind is ClusterIP because we don't want to expose the service to the outside world
+#
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: upload-service
+  labels:
+    app: upload-service
+    role: upload-service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5070
+    targetPort: 5070
+  selector:
+    app: upload-service
+    role: upload-service

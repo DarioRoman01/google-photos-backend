@@ -1,0 +1,18 @@
+# this is  service definition for the ngix service
+# it is used to expose the nginx service to other services to the world
+# the service kind is LoadBalancer because we want to expose the service to the outside world
+#
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: nginx

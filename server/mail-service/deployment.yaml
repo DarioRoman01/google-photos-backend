@@ -1,0 +1,27 @@
+# this a deployment config for the mail service
+# it is used to deploy the mail service to the kubernetes cluster
+#
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mail-service
+  labels:
+    app: mail-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mail-service
+      role: mail-service
+  template:
+    metadata:
+      labels:
+        app: mail-service
+        role: mail-service
+    spec:
+      containers:
+      - name: mail-service
+        image: registry.opensource.zalan.do/zalan/mail-service:latest
+        ports:
+        - containerPort: 5060

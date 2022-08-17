@@ -1,0 +1,19 @@
+# this a service definition for the mail service
+# it is used to expose the mail service to other services in the kubernetes cluster
+# the service kind is ClusterIP because we don't want to expose the service to the outside world
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mail-service
+  labels:
+    app: mail-service
+    role: mail-service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5060
+    targetPort: 5060
+  selector:
+    app: mail-service
+    role: mail-service

@@ -1,0 +1,26 @@
+# this is a deployment file for the command service
+# it is used to deploy the command service to the kubernetes cluster
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: commandservice
+  labels:
+    app: commandservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: commandservice
+      role: commandservice
+  template:
+    metadata:
+      labels:
+        app: commandservice
+        role: commandservice
+    spec:
+      containers:
+      - name: commandservice
+        image: registry.opensource.zalan.do/zalan/commandservice:latest
+        ports:
+        - containerPort: 3000
