@@ -15,6 +15,7 @@ COPY mail-service mail-service
 COPY mailpb mailpb
 COPY middlewares middlewares
 COPY models models
+COPY query-service query-service
 COPY upload-service upload-service
 COPY uploadpb uploadpb
 COPY utils utils
