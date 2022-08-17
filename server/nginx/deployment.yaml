@@ -13,14 +13,15 @@ spec:
   selector:
     matchLabels:
       app: nginx
+      role: nginx
   template:
     metadata:
       labels:
         app: nginx
+        role: nginx
     spec:
       containers:
       - name: nginx
-        image: registry.opensource.zalan.do/zalan/nginx:latest
+        image: haizza11/photos-nginx:0.3
         ports:
         - containerPort: 80
-`

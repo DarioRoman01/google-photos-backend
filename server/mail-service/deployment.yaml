@@ -5,23 +5,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mail-service
+  name: mailservice
   labels:
-    app: mail-service
+    app: mailservice
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: mail-service
-      role: mail-service
+      app: mailservice
+      role: mailservice
   template:
     metadata:
       labels:
-        app: mail-service
-        role: mail-service
+        app: mailservice
+        role: mailservice
     spec:
       containers:
-      - name: mail-service
-        image: registry.opensource.zalan.do/zalan/mail-service:latest
+      - name: mailservice
+        image: haizza11/photos:0.1
         ports:
         - containerPort: 5060
+        command: ["mail-service"]
+        envFrom:
+        - secretRef:
+            name: photos-env

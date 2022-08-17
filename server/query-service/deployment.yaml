@@ -5,24 +5,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: query-service
+  name: queryservice
   labels:
-    app: query-service
+    app: queryservice
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: query-service
-      role: query-service
+      app: queryservice
+      role: queryservice
   template:
     metadata:
       labels:
-        app: query-service
-        role: query-service
+        app: queryservice
+        role: queryservice
     spec:
       containers:
-      - name: query-service
-        image: registry.opensource.zalan.do/zalan/query-service:latest
+      - name: queryservice
+        image: haizza11/photos:0.1
         ports:
         - containerPort: 3001
-`
+        command: ["query-service"]
+        envFrom:
+        - secretRef:
+            name: photos-env

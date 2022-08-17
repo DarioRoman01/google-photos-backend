@@ -22,7 +22,10 @@ spec:
     spec:
       containers:
       - name: uploadservice
-        image: registry.opensource.zalan.do/zalan/uploadservice:latest
+        image: haizza11/photos:0.1
         ports:
         - containerPort: 5070
-`
+        command: ["upload-service"]
+        envFrom:
+        - secretRef:
+            name: photos-env

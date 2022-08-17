@@ -21,6 +21,10 @@ spec:
     spec:
       containers:
       - name: commandservice
-        image: registry.opensource.zalan.do/zalan/commandservice:latest
+        image: haizza11/photos:0.1
         ports:
         - containerPort: 3000
+        command: ["command-service"]
+        envFrom:
+        - secretRef:
+            name: photos-env

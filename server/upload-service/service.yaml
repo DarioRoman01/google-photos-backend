@@ -6,15 +6,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: upload-service
+  name: uploadservice
   labels:
-    app: upload-service
-    role: upload-service
+    app: uploadservice
+    role: uploadservice
 spec:
   type: ClusterIP
   ports:
   - port: 5070
     targetPort: 5070
   selector:
-    app: upload-service
-    role: upload-service
+    app: uploadservice
+    role: uploadservice
