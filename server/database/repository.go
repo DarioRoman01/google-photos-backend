@@ -19,9 +19,9 @@ type DatabaseRepository interface {
 	// GetImages retrieves all images from the database  from the given user.
 	GetImages(userID, cursor string, limit int) ([]*models.Image, error, bool)
 	// GetImagesByFolder retrieves all images from the database  from the given folder.
-	GetImagesByFolder(folderID string) ([]*models.Image, error)
+	GetImagesByFolder(userID, folderID, cursor string, limit int) ([]*models.Image, bool, error)
 	// GetFolders retrieves all folders from the database from the given user.
-	GetFolders(userID string) ([]*models.Folder, error)
+	GetFolders(userID, cursor string, limit int) ([]*models.Folder, bool, error)
 	// CheckFolder checks if the folder exists if not exists its create a new folder with the given name
 	CheckFolder(userID, foldeName string) (string, error)
 	// GetUserByUsername retrieves a user from the database by username.
@@ -33,7 +33,7 @@ type DatabaseRepository interface {
 	// DeleteImage deletes an image from the database.
 	DeleteImage(id string) error
 	// DeleteFolder deletes a folder from the database.
-	DeleteFolder(id string) error
+	DeleteFolder(id, userID string) error
 	// DeleteUser deletes a user from the database.
 	DeleteUser(id string) error
 	// UpdateImage updates the image with the given id only the folder and the url can be chage.
@@ -66,16 +66,16 @@ func GetFolder(id string) (*models.Folder, error) {
 	return databaseRepository.GetFolder(id)
 }
 
-func GetImagesGetImages(userID, cursor string, limit int) ([]*models.Image, error, bool) {
+func GetImages(userID, cursor string, limit int) ([]*models.Image, error, bool) {
 	return databaseRepository.GetImages(userID, cursor, limit)
 }
 
-func GetFolders(userID string) ([]*models.Folder, error) {
-	return databaseRepository.GetFolders(userID)
+func GetFolders(userID, cursor string, limit int) ([]*models.Folder, bool, error) {
+	return databaseRepository.GetFolders(userID, cursor, limit)
 }
 
-func GetImagesByFolder(folderID string) ([]*models.Image, error) {
-	return databaseRepository.GetImagesByFolder(folderID)
+func GetImagesByFolder(userID, folderID, cursor string, limit int) ([]*models.Image, bool, error) {
+	return databaseRepository.GetImagesByFolder(userID, folderID, cursor, limit)
 }
 
 func UpdateUserStatus(id string) error {
@@ -106,8 +106,8 @@ func DeleteImage(id string) error {
 	return databaseRepository.DeleteImage(id)
 }
 
-func DeleteFolder(id string) error {
-	return databaseRepository.DeleteFolder(id)
+func DeleteFolder(id, userID string) error {
+	return databaseRepository.DeleteFolder(id, userID)
 }
 
 func DeleteUser(id string) error {

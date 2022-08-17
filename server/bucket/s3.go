@@ -33,11 +33,11 @@ func NewS3BucketRepository() (*S3BucketRepository, error) {
 }
 
 // Delete deletes an image from the bucket.
-func (r *S3BucketRepository) Delete(username, filename, folder string) error {
+func (r *S3BucketRepository) Delete(key string) error {
 	svc := s3.New(r.client)
 	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(os.Getenv("S3_BUCKET")),
-		Key:    aws.String(fmt.Sprintf("%s/%s/%s", username, folder, filename)),
+		Key:    aws.String(key),
 	})
 
 	return err
@@ -96,14 +96,4 @@ func (r *S3BucketRepository) MoveFile(username, oldPath, newPath, filename strin
 	}
 
 	return opt.CopyObjectResult.GoString(), nil
-}
-
-func (r *S3BucketRepository) DeleteFolder(username, folderName string) error {
-	svc := s3.New(r.client)
-	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
-		Bucket: aws.String(os.Getenv("S3_BUCKET")),
-		Key:    aws.String(fmt.Sprintf("%s/%s", username, folderName)),
-	})
-
-	return err
 }

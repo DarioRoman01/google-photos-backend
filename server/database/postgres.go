@@ -230,10 +230,26 @@ func (r *PostgresRepository) GetImages(userID, cursor string, limit int) ([]*mod
 }
 
 // GetImagesByFolder returns all images for the given folder.
-func (r *PostgresRepository) GetImagesByFolder(folderID string) ([]*models.Image, error) {
-	rows, err := r.db.Query("SELECT id, name, url, user_id, folder_id, created_at FROM images WHERE folder_id = $1", folderID)
+func (r *PostgresRepository) GetImagesByFolder(userID, folderID, cursor string, limit int) ([]*models.Image, bool, error) {
+	if limit > 50 || limit < 1 {
+		limit = 50
+	}
+
+	var rows *sql.Rows
+	var err error
+	if cursor == "" {
+		rows, err = r.db.Query(`
+			SELECT id, name, url, user_id, folder_id, created_at FROM images WHERE user_id = $1 AND folder_id = $2 ORDER BY created_at DESC LIMIT $3
+		`, userID, folderID, limit)
+
+	} else {
+		rows, err = r.db.Query(`
+		"SELECT id, name, url, user_id, folder_id, created_at FROM images WHERE user_id = $1 AND folder_id = $2 AND created_at < $3 ORDER BY created_at DESC LIMIT $4"
+		`, userID, folderID, cursor, limit)
+	}
+
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	defer rows.Close()
@@ -242,13 +258,21 @@ func (r *PostgresRepository) GetImagesByFolder(folderID string) ([]*models.Image
 		image := &models.Image{}
 		err := rows.Scan(&image.ID, &image.Name, &image.URL, &image.UserID, &image.FolderID)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		images = append(images, image)
 	}
 
-	return images, nil
+	if len(images) == 0 {
+		return nil, false, nil
+	}
+
+	if len(images) == limit {
+		return images, true, nil
+	}
+
+	return images, false, nil
 }
 
 // GetFolder returns a folder with the given id.
@@ -264,10 +288,26 @@ func (r *PostgresRepository) GetFolder(id string) (*models.Folder, error) {
 }
 
 // GetFolders returns all folders for the given user.
-func (r *PostgresRepository) GetFolders(userID string) ([]*models.Folder, error) {
-	rows, err := r.db.Query("SELECT id, name, user_id, created_at FROM folders WHERE user_id = $1", userID)
+func (r *PostgresRepository) GetFolders(userID, cursor string, limit int) ([]*models.Folder, bool, error) {
+	if limit > 50 || limit < 1 {
+		limit = 50
+	}
+
+	var rows *sql.Rows
+	var err error
+	if cursor == "" {
+		rows, err = r.db.Query(`
+			SELECT id, name, user_id, created_at FROM folders WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2
+		`, userID, limit)
+
+	} else {
+		rows, err = r.db.Query(`
+		"SELECT id, name, user_id, created_at FROM folders WHERE user_id = $1 AND created_at < $2 ORDER BY created_at DESC LIMIT $3"
+		`, userID, cursor, limit)
+	}
+
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	defer rows.Close()
@@ -276,13 +316,20 @@ func (r *PostgresRepository) GetFolders(userID string) ([]*models.Folder, error)
 		folder := &models.Folder{}
 		err := rows.Scan(&folder.ID, &folder.Name, &folder.UserID, &folder.CreatedAt)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		folders = append(folders, folder)
 	}
 
-	return folders, nil
+	if len(folders) == 0 {
+		return nil, false, nil
+	}
+
+	if len(folders) == limit {
+		return folders, true, nil
+	}
+	return folders, false, nil
 }
 
 // GetImageURL returns the url for the given image id.
@@ -315,8 +362,8 @@ func (r *PostgresRepository) UpdateImage(req *models.MoveFileRequest, userId str
 }
 
 // DeleteFolder deletes a folder with the given id.
-func (r *PostgresRepository) DeleteFolder(id string) error {
-	_, err := r.db.Exec("DELETE FROM folders WHERE id = $1", id)
+func (r *PostgresRepository) DeleteFolder(id, userID string) error {
+	_, err := r.db.Exec("DELETE FROM folders WHERE id = $1 and user_id = $2", id, userID)
 	return err
 }
 

@@ -16,15 +16,13 @@ func main() {
 	}
 
 	app.Use(middlewares.CheckAuthMiddleware())
-	app.Post("/signup", commandService.RegisterHandler)
-	app.Post("/login", commandService.LoginHandler)
-	app.Post("/upload", commandService.UploadHandler)
-	app.Post("/move", commandService.MoveFileHandler)
-	app.Post("/verify", commandService.HandleVerify)
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
+	app.Post("/users/signup", commandService.RegisterHandler)
+	app.Post("/folders/create", commandService.CreateFolderHandler)
+	app.Post("/users/login", commandService.LoginHandler)
+	app.Post("/images/upload", commandService.UploadHandler)
+	app.Put("/images/move", commandService.MoveFileHandler)
+	app.Post("/users/verify", commandService.HandleVerify)
+	app.Delete("/images/delete/:filename/:id", commandService.DeleteImageHandler)
 
 	app.Listen(":3000")
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -173,6 +174,21 @@ func (s *CommandService) LogoutHandler(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(map[string]string{"message": "User logged out"})
 }
 
+func (s *CommandService) CreateFolderHandler(c *fiber.Ctx) error {
+	var folder models.Folder
+	if err := c.BodyParser(&folder); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(utils.JsonError("Invalid body"))
+	}
+
+	folder.ID = uuid.NewString()
+	folder.UserID = c.Locals("user_id").(string)
+	if err := database.InsertFolder(&folder); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(utils.JsonError("Error creating folder"))
+	}
+
+	return c.Status(http.StatusCreated).JSON(folder)
+}
+
 func (s *CommandService) getUploadData(c *fiber.Ctx) (*models.UploadRequest, error) {
 	folder := c.Query("path")
 	if folder == "" {
@@ -288,15 +304,34 @@ func (s *CommandService) DeleteImageHandler(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(utils.JsonError("Invalid id"))
 	}
 
-	if err := bucket.Delete(c.Locals("username").(string), fileName, folder); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(utils.JsonError("Error deleting file"))
-	}
-
 	if err := database.DeleteImage(id); err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(utils.JsonError("Error deleting image"))
 	}
 
+	key := fmt.Sprintf("%s/%s/%s", c.Locals("username").(string), folder, fileName)
+	if err := bucket.Delete(key); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(utils.JsonError("Error deleting file"))
+	}
+
 	return c.Status(http.StatusOK).JSON(map[string]string{"message": "Image deleted"})
+}
+
+func (s *CommandService) DeleteFolderHandler(c *fiber.Ctx) error {
+	folder := c.Params("folder")
+	if folder == "" {
+		return c.Status(http.StatusBadRequest).JSON(utils.JsonError("Invalid folder"))
+	}
+
+	userId := c.Locals("user_id").(string)
+	if err := database.DeleteFolder(userId, folder); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(utils.JsonError("Error deleting folder"))
+	}
+
+	if err := bucket.Delete(fmt.Sprintf("%s/%s", c.Locals("username").(string), folder)); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(utils.JsonError("Error deleting folder"))
+	}
+
+	return c.Status(http.StatusOK).JSON(map[string]string{"message": "Folder deleted"})
 }
 
 func (s *CommandService) MoveFileHandler(c *fiber.Ctx) error {
